@@ -1,6 +1,6 @@
 import mysql2 from "mysql2/promise"
 
-let connection
+let connection;
 
 export default async function mySqlConnect(dbhost, dbport, dbusername, dbpass, database) {
     if (!connection) {
@@ -11,7 +11,7 @@ export default async function mySqlConnect(dbhost, dbport, dbusername, dbpass, d
             password: dbpass,
             database: database,
         });
+        console.log("Connected to MySQL");
     }
-    console.log("Connected to MySQL");
     return connection;
 };

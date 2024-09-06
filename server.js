@@ -2,16 +2,10 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import bodyParser from "body-parser";
 import cors from "cors";
-import dotenv from "dotenv";
 import mySqlConnect from "./src/db.js";
+import userRouter from "./src/userRouter.js";
 
-dotenv.config({
-    path: [
-        "./.env.production",
-        "./.env.development"
-    ],
-});
-
+// dotenv is configured in ./src/userRouter.js
 const app = express();
 
 // setup basic middlewares
@@ -29,7 +23,11 @@ app.use(bodyParser.urlencoded({ extended: false }));
 // cookie parser
 app.use(cookieParser());
 
+// routing
+app.use("/users", userRouter);
+
 const SERVER_PORT = process.env.SERVER_PORT;
+
 app.listen(SERVER_PORT, async (req, res) => {
     const dbConnection = await mySqlConnect(
         process.env.DB_HOST,
@@ -46,11 +44,14 @@ app.listen(SERVER_PORT, async (req, res) => {
             try {
                 await dbConnection.query(
                     `CREATE TABLE user_creds (
-                        userId INT PRIMARY KEY AUTO_INCREMENT,
+                        uuid VARCHAR(36) PRIMARY KEY,
                         username VARCHAR(24) UNIQUE,
                         password VARCHAR(255) NOT NULL
                     );`
                 )
+                await dbConnection.query(
+                    `ALTER TABLE user_creds AUTO_INCREMENT=100000`
+                );
                 console.log(`user_creds table created`);
             } catch (err) {
                 console.log(err);
