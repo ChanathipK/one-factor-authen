@@ -26,6 +26,18 @@ const SECRET = process.env.SECRET;
 
 const router = express.Router();
 
+router.get("/", async (req, res) => {
+    try {
+        const [users] = await connection.query(
+            "SELECT username FROM user_creds;",
+        );
+        res.status(200).json(users);
+    } catch (err) {
+        console.log(err);
+        res.status(500).send();
+    }
+});
+
 router.post("/register", async (req, res) => {
     try {
         const { username, password } = req.body;
@@ -33,15 +45,18 @@ router.post("/register", async (req, res) => {
             const [result, reason] = await validateCredentials(username, password);
             if (result) {
                 res.status(201).json({
+                    result: "success",
                     username,
                 });
             } else {
                 res.status(400).json({
+                    result: "failed",
                     reason,
                 });
             }
         } else {
             res.status(400).json({
+                result: "failed",
                 reason: "missing credentials",
             });
         }
@@ -73,7 +88,7 @@ async function validateCredentials(username, password) {
 async function createCredentials(username, password) {
     try {
         const [users] = await connection.execute(
-            `SELECT username FROM user_creds WHERE username = ${username};`
+            `SELECT username FROM user_creds WHERE username = '${username}';`
         );
         if (users.length != 0) {
             return [false, "username not unique"];
